@@ -1,0 +1,8 @@
+database:
+  host: 'localhost'
+  port: '5432'
+  username: 'postgres'
+  dbname: 'Medod'
+  sslmode: 'disable'
+server:
+  port: '8080'
