@@ -9,6 +9,7 @@ import (
 
 const (
 	usersTable = "users"
+	refreshTokensTable = "refresh_tokens"
 )
 
 type Config struct {

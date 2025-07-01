@@ -9,6 +9,7 @@ import (
 type Authorization interface {
 	CreateUser(user models.User) (uuid.UUID, error)
 	GetUser(username, password string) (models.User, error)
+	CreateRefreshToken(hash string, userId uuid.UUID)  error
 }
 
 type Repository struct {

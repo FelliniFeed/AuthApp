@@ -39,7 +39,8 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-		tocken, err := h.service.Authorization.GenerateTocken(input.Username, input.Password)
+	tocken, refreshToken, err := h.service.Authorization.GenerateToken(input.Username, input.Password)
+		
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -47,5 +48,6 @@ func (h *Handler) signIn(c *gin.Context) {
 
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"tocken": tocken,
+		"refreshTocken": refreshToken,
 	})
 }

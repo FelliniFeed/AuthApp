@@ -1,7 +1,9 @@
 package service
 
 import (
+	"crypto/rand"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/FelliniFeed/AuthApp.git/pkg/repository"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -17,7 +20,7 @@ const (
 	tockenTTL = 12 * time.Hour
 )
 	
-type tockenClaims struct {
+type tokenClaims struct {
 	jwt.StandardClaims
 	UserId uuid.UUID `json:"userID"`
 }
@@ -35,31 +38,58 @@ func (s *AuthService) CreateUser(user models.User) (uuid.UUID, error) {
 	return s.repo.CreateUser(user)
 }
 
-func (s *AuthService) GenerateTocken(username, password string) (string, error) {
+func (s *AuthService) GenerateToken(username, password string) (string, string, error) {
 	user, err := s.repo.GetUser(username, generatePasswordHash(password))
 
 	if err != nil {
-		return "", err
+		return "","", err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tockenClaims{
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tockenTTL).Unix(),
 			IssuedAt: time.Now().Unix(),
 		},
 		user.ID,
 	})
-	tockenStr, err := token.SignedString([]byte(signingKey))
+
+	tockenStr, err := accessToken.SignedString([]byte(signingKey))
 
 	if err != nil {
-		return "", err
+		return "","", err
 	}
 
-	return tockenStr, nil
+	refreshToken := generateRefreshToken()
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(refreshToken), bcrypt.DefaultCost)
+
+	if err != nil {
+		return "","", err
+	}
+
+	err = s.repo.CreateRefreshToken(string(hash), user.ID)
+
+	if err != nil {
+		return "","", err
+	}
+
+	return tockenStr, refreshToken, nil
 }
 
 func generatePasswordHash(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+}
+
+func generateRefreshToken() string {
+	bytes := make([]byte, 32)
+
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return ""
+	}
+
+	token := base64.StdEncoding.EncodeToString(bytes)
+	return token
 }
