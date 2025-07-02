@@ -41,6 +41,7 @@ func (s *AuthService) CreateUser(user models.User) (uuid.UUID, error) {
 func (s *AuthService) GenerateToken(username, password string) (string, string, error) {
 	user, err := s.repo.GetUser(username, generatePasswordHash(password))
 
+	fmt.Println(user)
 	if err != nil {
 		return "","", err
 	}

@@ -49,7 +49,7 @@ func (r *AuthPostgres) GetUser(username, password string) (models.User, error) {
 }
 
 func(r *AuthPostgres) CreateRefreshToken(hash string, userID uuid.UUID) error {
-	query := fmt.Sprintf("INSERT INTO %s (hash, user_id) values ($1, $2)", refreshTokensTable)
+	query := fmt.Sprintf("INSERT INTO %s (refresh_token, user_id) values ($1, $2)", refreshTokensTable)
 	_, err := r.db.Exec(query, hash, userID)
 	return err
 }

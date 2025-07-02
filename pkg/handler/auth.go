@@ -10,6 +10,9 @@ import (
 func (h *Handler) signUp(c *gin.Context) {
 	var input models.User
 
+	input.Username = c.Query("UserName")
+	input.Password = c.Query("Password")
+
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
